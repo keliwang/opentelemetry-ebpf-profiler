@@ -18,6 +18,7 @@ import (
 	"go.opentelemetry.io/ebpf-profiler/internal/controller"
 	"go.opentelemetry.io/ebpf-profiler/internal/helpers"
 	"go.opentelemetry.io/ebpf-profiler/reporter"
+	"go.opentelemetry.io/ebpf-profiler/reporter/samples"
 	"go.opentelemetry.io/ebpf-profiler/times"
 	"go.opentelemetry.io/ebpf-profiler/vc"
 
@@ -116,6 +117,12 @@ func mainWithExitCode() exitCode {
 	}
 	cfg.HostName, cfg.IPAddress = hostname, sourceIP
 
+	extraSampleAttrProducer, err := samples.NewQunarSampleAttrProducer()
+	if err != nil {
+		log.Error(err)
+		return exitFailure
+	}
+
 	rep, err := reporter.NewOTLP(&reporter.Config{
 		CollAgentAddr:            cfg.CollAgentAddr,
 		DisableTLS:               cfg.DisableTLS,
@@ -133,6 +140,7 @@ func mainWithExitCode() exitCode {
 		KernelVersion:       kernelVersion,
 		HostName:            hostname,
 		IPAddress:           sourceIP,
+		ExtraSampleAttrProd: extraSampleAttrProducer,
 	})
 	if err != nil {
 		log.Error(err)
